@@ -256,7 +256,9 @@ if(typeof window !== 'undefined' && typeof document !== 'undefined'){
   var $ = function(id){ return document.getElementById(id); };
   var fileInput = $('file'), drop = $('drop'), preview = $('preview'),
       result = $('result'), verdictEl = $('verdict'), noteEl = $('note'),
-      sigList = $('signals'), metaEl = $('meta'), toast = $('toast'), toastT = null;
+      sigList = $('signals'), metaEl = $('meta'), toast = $('toast'), toastT = null,
+      deepBtn = $('deepcheck'), deepNote = $('deepnote'),
+      lastBytes = null, lastType = '';
 
   function showToast(msg){
     toast.textContent = msg;
@@ -297,6 +299,15 @@ if(typeof window !== 'undefined' && typeof document !== 'undefined'){
       });
       var dims = parsed.width ? parsed.width + ' × ' + parsed.height + ' px' : 'n/a';
       metaEl.textContent = parsed.format + ' · ' + dims + ' · ' + fmtBytes(file.size);
+      lastBytes = bytes; lastType = file.type || 'image/png';
+      deepNote.innerHTML = '';
+      if(location.hostname.indexOf('vercel.app') >= 0){
+        deepBtn.style.display = 'block';
+        deepBtn.disabled = false;
+        deepBtn.textContent = 'Deep pixel check';
+      } else {
+        deepBtn.style.display = 'none';
+      }
       result.style.display = 'block';
       result.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
     };
@@ -312,6 +323,50 @@ if(typeof window !== 'undefined' && typeof document !== 'undefined'){
   });
   drop.addEventListener('drop', function(e){
     if(e.dataTransfer.files.length) handleFile(e.dataTransfer.files[0]);
+  });
+  deepBtn.addEventListener('click', function(){
+    if(!lastBytes) return;
+    deepBtn.disabled = true;
+    deepBtn.textContent = 'Checking…';
+    deepNote.textContent = '';
+    fetch('/api/deepcheck', {
+      method: 'POST',
+      headers: { 'Content-Type': lastType },
+      body: lastBytes
+    }).then(function(r){
+      return r.json().then(function(d){ return { code: r.status, body: d }; });
+    }).then(function(out){
+      deepBtn.disabled = false;
+      deepBtn.textContent = 'Deep pixel check';
+      var d = out.body || {};
+      if(out.code === 500 && d.error === 'not_configured'){
+        deepNote.textContent = 'Deep check is not set up yet.';
+        return;
+      }
+      if(d.status !== 'success' || !d.type || typeof d.type.ai_generated !== 'number'){
+        deepNote.textContent = 'Deep check failed. Try again later.';
+        return;
+      }
+      var p = d.type.ai_generated;
+      var pct = Math.round(p * 100);
+      var top = '', topS = 0;
+      var gens = d.type.ai_generators || {};
+      Object.keys(gens).forEach(function(k){
+        if(gens[k] > topS){ topS = gens[k]; top = k; }
+      });
+      var label = top ? top.replace(/_/g, ' ') : '';
+      var extra = (p >= 0.5 && top) ? ' Top match: ' + label + ' (' + Math.round(topS * 100) + '%).' : '';
+      var html;
+      if(p >= 0.8) html = '<strong>Pixel check: ' + pct + '% AI-generated.</strong> Strong pixel-level signal.' + extra;
+      else if(p >= 0.5) html = '<strong>Pixel check: ' + pct + '% AI-generated.</strong> Leans AI-generated.' + extra;
+      else if(p <= 0.2) html = '<strong>Pixel check: ' + pct + '% AI-generated.</strong> Looks like a real photo at the pixel level.';
+      else html = '<strong>Pixel check: ' + pct + '% AI-generated.</strong> Inconclusive.';
+      deepNote.innerHTML = html;
+    }).catch(function(){
+      deepBtn.disabled = false;
+      deepBtn.textContent = 'Deep pixel check';
+      deepNote.textContent = 'Deep check failed. Try again later.';
+    });
   });
 }
 
