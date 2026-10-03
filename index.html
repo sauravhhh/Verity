@@ -69,6 +69,13 @@ main{flex:1; width:100%; max-width:520px; margin:0 auto; padding:24px 18px 36px;
 #signals strong{display:block; font-size:15px; margin-bottom:3px; font-weight:700;}
 #signals p{margin:0; font-size:14px; color:var(--muted); line-height:1.5;}
 #meta{font-size:13px; color:var(--muted); margin:14px 0 0; text-align:center;}
+#deepcheck{
+  display:none; width:100%; margin-top:14px; padding:14px; font-size:15px; font-weight:700;
+  border:1px solid var(--border); border-radius:12px; background:var(--bg); color:var(--text); cursor:pointer;
+}
+#deepcheck:disabled{opacity:.55; cursor:wait;}
+.deepnote{font-size:14px; color:var(--muted); margin:10px 2px 0; line-height:1.55; text-align:left;}
+.deepnote strong{color:var(--text);}
 .hint{font-size:13px; color:var(--muted); text-align:center; line-height:1.65; margin:6px 10px 0;}
 footer{text-align:center; padding:18px; font-size:13px; color:var(--muted); border-top:1px solid var(--border);}
 #toast{
@@ -100,6 +107,8 @@ footer{text-align:center; padding:18px; font-size:13px; color:var(--muted); bord
     <p id="note"></p>
     <ul id="signals"></ul>
     <p id="meta"></p>
+    <button id="deepcheck">Deep pixel check</button>
+    <p id="deepnote" class="deepnote"></p>
   </div>
 
   <p class="hint">Verity reads technical traces inside the file, such as metadata and generator signatures. It does not analyze pixels, and metadata can be stripped or faked, so treat the result as a clue, not proof.</p>
