@@ -230,7 +230,8 @@ function analyze(parsed){
       detail: 'Original date/time recorded: ' + ex.dateTimeOriginal + '.' });
   }
 
-  var hasMeta = blob.replace(/\s+/g, '').length > 0 || parsed.hasC2PA;
+  var hasMeta = blob.replace(/\s+/g, '').length > 0 || parsed.hasC2PA ||
+                ex.make || ex.model || ex.dateTimeOriginal;
   if(!hasMeta){
     signals.push({ ai: null, title: 'No metadata at all',
       detail: 'The file carries no EXIF, comments or text chunks. Many AI images look like this, but so do screenshots and photos stripped by social apps.' });
