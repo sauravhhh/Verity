@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>Verity</title>
+<meta name="description" content="Check if a photo is AI-generated">
+<link rel="icon" type="image/png" sizes="32x32" href="favicon-32.png">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#111111">
+<style>
+:root{
+  --bg:#ffffff; --surface:#f5f5f5; --text:#111111; --muted:#6b6b6b;
+  --border:#e5e5e5; --accent:#111111; --on-accent:#ffffff;
+}
+@media (prefers-color-scheme: dark){
+  :root{
+    --bg:#0d0d0d; --surface:#1a1a1a; --text:#f5f5f5; --muted:#a3a3a3;
+    --border:#2a2a2a; --accent:#f5f5f5; --on-accent:#111111;
+  }
+}
+*{box-sizing:border-box; -webkit-tap-highlight-color:transparent;}
+body{
+  margin:0; background:var(--bg); color:var(--text);
+  font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+  min-height:100vh; display:flex; flex-direction:column;
+}
+header{display:flex; align-items:center; gap:10px; padding:16px 20px; border-bottom:1px solid var(--border);}
+header svg{width:26px; height:26px;}
+header h1{font-size:20px; margin:0; font-weight:700;}
+main{flex:1; width:100%; max-width:520px; margin:0 auto; padding:20px 16px 32px;}
+.card{background:var(--surface); border:1px solid var(--border); border-radius:16px; padding:20px; margin-bottom:16px;}
+#drop{
+  border:2px dashed var(--border); border-radius:14px; padding:36px 20px;
+  text-align:center; cursor:pointer; transition:.2s;
+}
+#drop.over{border-color:var(--text); background:var(--bg);}
+#drop .big{font-size:34px; margin-bottom:8px;}
+#drop p{margin:0; color:var(--muted); font-size:15px;}
+#drop strong{color:var(--text);}
+#preview{display:none; width:100%; border-radius:12px; margin-top:14px; max-height:320px; object-fit:contain; background:var(--bg);}
+#result{display:none;}
+.verdict{
+  display:inline-block; font-size:18px; font-weight:800;
+  padding:10px 18px; border-radius:24px; margin:4px 0 8px;
+}
+.v-ai{background:#fee2e2; color:#b91c1c;}
+.v-real{background:#dcfce7; color:#15803d;}
+.v-mid{background:#fef3c7; color:#b45309;}
+@media (prefers-color-scheme: dark){
+  .v-ai{background:#3f1d1d; color:#fca5a5;}
+  .v-real{background:#12351f; color:#86efac;}
+  .v-mid{background:#3a2c10; color:#fcd34d;}
+}
+#note{color:var(--muted); font-size:15px; line-height:1.5; margin:0 0 6px;}
+#signals{list-style:none; margin:12px 0 0; padding:0;}
+#signals li{display:flex; gap:12px; padding:12px 0; border-top:1px solid var(--border);}
+#signals .dot{flex:0 0 10px; width:10px; height:10px; border-radius:50%; margin-top:5px;}
+.s-ai .dot{background:#dc2626;}
+.s-real .dot{background:#16a34a;}
+.s-mid .dot{background:#d97706;}
+#signals strong{display:block; font-size:15px; margin-bottom:2px;}
+#signals p{margin:0; font-size:14px; color:var(--muted); line-height:1.45;}
+#meta{font-size:13px; color:var(--muted); margin-top:12px;}
+.hint{font-size:13px; color:var(--muted); text-align:center; line-height:1.6; margin:4px 8px 0;}
+footer{text-align:center; padding:18px; font-size:13px; color:var(--muted); border-top:1px solid var(--border);}
+#toast{
+  position:fixed; left:50%; bottom:32px; transform:translateX(-50%) translateY(20px);
+  background:var(--text); color:var(--bg); padding:10px 20px; border-radius:24px;
+  font-size:14px; opacity:0; pointer-events:none; transition:.25s;
+}
+#toast.show{opacity:1; transform:translateX(-50%) translateY(0);}
+</style>
+</head>
+<body>
+<header>
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+  <h1>Verity</h1>
+</header>
+<main>
+  <div class="card">
+    <div id="drop" role="button" tabindex="0" aria-label="Choose a photo">
+      <div class="big">🖼️</div>
+      <p><strong>Tap to choose a photo</strong><br>or drag &amp; drop it here</p>
+    </div>
+    <input type="file" id="file" accept="image/*" hidden>
+    <img id="preview" alt="Selected photo">
+  </div>
+
+  <div class="card" id="result">
+    <span class="verdict" id="verdict"></span>
+    <p id="note"></p>
+    <ul id="signals"></ul>
+    <p id="meta"></p>
+  </div>
+
+  <p class="hint">Verity reads technical traces inside the file, such as metadata and generator signatures. It does not analyze pixels, and metadata can be stripped or faked, so treat the result as a clue, not proof.</p>
+</main>
+<footer>Made with ❤️ by sauravhhh</footer>
+<div id="toast"></div>
+<script src="app.js"></script>
+<script>
+if('serviceWorker' in navigator){ navigator.serviceWorker.register('sw.js').catch(function(){}); }
+</script>
+</body>
+</html>
